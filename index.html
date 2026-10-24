@@ -1899,7 +1899,34 @@
         background: #7861ce;
         color: white;
       }
-    </style>
+    /* Scan jadwal memakai palet, font, dan kontrol Ruang Kuliah. */
+.schedule-scan-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.schedule-scan-inline{margin:0 0 18px}
+#scheduleScanDialog{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain}
+#scheduleScanDialog [hidden]{display:none!important}
+#scheduleScanDialog .scan-tip{font-size:13px;color:var(--muted);line-height:1.6;margin:12px 0}
+#scheduleScanPreview{display:block;width:100%;max-height:220px;object-fit:contain;border:1px solid var(--line);border-radius:14px;background:var(--input);margin:14px 0}
+#scheduleScanProgress{width:100%;height:10px;accent-color:var(--primary);margin:0 0 12px}
+#scheduleScanStatus{font-size:13px;line-height:1.6;color:var(--primary-dark)}
+#scheduleScanError:not(:empty){padding:12px;border:1px solid var(--bad);border-radius:12px;scroll-margin-block:24px}
+.scan-text{padding:14px;border:1px solid var(--line);border-radius:14px;margin:16px 0}
+.scan-text summary{cursor:pointer;color:var(--primary-dark);font-weight:600}
+.scan-text[open] summary{margin-bottom:12px}
+.scan-text textarea{min-height:180px;resize:vertical}
+.scan-course{padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--surface);margin:14px 0}
+.scan-course-pick{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+#scheduleScanDialog input[type=checkbox]{width:22px;height:22px;min-width:22px;min-height:22px;flex:none;margin:0;appearance:auto;accent-color:var(--primary)}
+.scan-course .form-stack{gap:12px}
+.scan-course-duplicate{font-size:12px;color:var(--warm);line-height:1.6;margin:8px 0}
+.scan-course-duplicate:empty{display:none}
+.scan-slot{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--input)}
+.scan-slot>label:first-child{grid-column:1/-1}.scan-slot>.text-btn{grid-column:1/-1;justify-self:start}
+#scheduleScanDialog .dialog-actions{flex-wrap:wrap}
+@media(max-width:480px){.schedule-scan-tools{width:100%}.schedule-scan-tools>.btn{flex:1 1 130px;justify-content:center}#scheduleScanDialog{padding:18px}.scan-course{padding:12px}}
+
+#scheduleScanDialog .btn.quiet,#scanCourseFormButton{color:var(--primary-dark);background:var(--tint)}
+#scheduleScanDialog .text-btn{color:var(--primary-dark)}
+</style>
   </head>
   <body>
     <a href="#main" class="skip">Lewati ke isi</a>
@@ -2340,13 +2367,13 @@
             <h1 id="scheduleTitle">Kenali ritme minggumu.</h1>
             <p>Semua kelasmu, tersusun dalam satu tempat.</p>
           </div>
-          <button
+          <div class="schedule-scan-tools"><button type="button" class="btn soft" id="scanScheduleButton"><span data-icon="upload"></span>Scan jadwal</button><button
             class="btn"
             data-action="add-course"
             aria-label="Tambah mata kuliah"
           >
             <span data-icon="plus"></span>Mata kuliah
-          </button>
+          </button></div>
         </div>
         <div class="schedule-layout">
           <section class="card">
@@ -2491,7 +2518,22 @@
         </div>
       </form>
     </dialog>
-    <dialog id="courseDialog" aria-labelledby="courseDialogTitle">
+    <dialog id="scheduleScanDialog" aria-labelledby="scheduleScanTitle">
+ <div class="dialog-header"><h2 id="scheduleScanTitle">Scan jadwal kelas</h2><button type="button" class="icon-btn" id="scheduleScanClose" aria-label="Tutup scan jadwal"><span data-icon="close"></span></button></div>
+ <p class="dialog-sub">Pilih screenshot atau foto jadwal kampus. Periksa hasilnya, lalu simpan kelas yang kamu pilih.</p>
+ <div class="schedule-scan-tools"><button type="button" class="btn" id="scheduleScanGallery"><span data-icon="upload"></span>Ambil dari galeri</button><button type="button" class="btn quiet" id="scheduleScanCamera"><span data-icon="camera"></span>Kamera</button></div>
+ <input type="file" id="scheduleScanGalleryFile" accept="image/*" hidden><input type="file" id="scheduleScanCameraFile" accept="image/*" capture="environment" hidden>
+ <p class="scan-tip">Foto dibaca di perangkat. Internet diperlukan untuk memuat pembaca teks. Gunakan foto yang tegak, jelas, dan menampilkan nama kelas, hari, serta jam.</p>
+ <img id="scheduleScanPreview" alt="Foto jadwal yang sedang diperiksa" hidden>
+ <p id="scheduleScanStatus" role="status" aria-live="polite"></p><progress id="scheduleScanProgress" max="1" value="0" aria-label="Kemajuan pembacaan jadwal" hidden></progress><button type="button" class="btn quiet" id="scheduleScanStop" hidden>Batalkan pembacaan</button>
+ <p class="form-error" id="scheduleScanError" role="alert" tabindex="-1"></p>
+ <details id="scheduleScanTextWrap" class="scan-text"><summary>Lihat atau tempel teks jadwal</summary><label class="field"><span>Teks jadwal yang terbaca</span><textarea id="scheduleScanText" rows="8" maxlength="60000" placeholder="Machine Learning&#10;MKU321415-SKS 3-Smt. 5&#10;Wahab Sya'roni, M.Kom.&#10;Kelas D Hari Minggu&#10;08.00-10.00 D2.Lab. Komputer"></textarea></label><button type="button" class="btn quiet" id="scheduleScanParse">Baca teks menjadi kelas</button><p class="scan-tip">Bisa digunakan tanpa foto. Tulis nama, dosen, hari, jam mulai–selesai, dan ruangan seperti contoh.</p></details>
+ <p id="scheduleScanSummary" class="scan-tip" aria-live="polite"></p><div id="scheduleScanResults" aria-label="Daftar kelas hasil scan"></div>
+ <button type="button" class="btn soft" id="scheduleScanAdd">+ Tambah kelas manual</button>
+ <div class="dialog-actions"><button type="button" class="btn quiet" id="scheduleScanCancel">Batal</button><button type="button" class="btn primary-action" id="scheduleScanSave" disabled>Simpan kelas terpilih</button></div>
+</dialog>
+
+<dialog id="courseDialog" aria-labelledby="courseDialogTitle">
       <form id="courseForm" novalidate>
         <div class="dialog-header">
           <h2 id="courseDialogTitle">Tambah mata kuliah</h2>
@@ -2504,7 +2546,7 @@
             <span data-icon="close"></span>
           </button>
         </div>
-        <p class="dialog-sub">Simpan kelas dan jadwal mingguannya di sini.</p>
+        <p class="dialog-sub">Simpan kelas dan jadwal mingguannya di sini.</p><button type="button" class="btn quiet schedule-scan-inline" id="scanCourseFormButton">Punya foto jadwal? Scan di sini</button>
         <p class="form-error" id="courseError" role="alert"></p>
         <div class="form-stack">
           <label class="field"
@@ -2724,7 +2766,7 @@
         <div>
           <strong>Masukkan mata kuliah</strong>
           <p>
-            Buka Jadwal → tambah mata kuliah. Isi hari, jam, dan ruangan. Mata
+            Buka Jadwal → Scan jadwal untuk mengisi kelas dari foto, atau tambah mata kuliah secara manual. Periksa hari, jam, dan ruangan sebelum menyimpan. Mata
             kuliah tanpa jadwal juga boleh.
           </p>
         </div>
@@ -4765,6 +4807,107 @@
           toast("Perubahan dari tab lain belum dapat dibaca.", true);
         }
       });
+// Scan jadwal: hasil OCR tetap berupa draf sampai pengguna menyimpannya.
+ICONS.camera='<rect x="3" y="6" width="18" height="15" rx="3"/><path d="m8 6 2-3h4l2 3"/><circle cx="12" cy="13" r="4"/>';
+let scheduleScanRows=[],scheduleScanBusy=false,scheduleScanRun=0,scheduleScanWorker=null,scheduleScanURL='',scheduleOcrLoader=null;
+const scanNameKey=s=>String(s||'').normalize('NFKC').replace(/\s+/g,' ').trim().toLocaleLowerCase('id');
+const scanTimePattern=()=>/([0-2]?\d)[.:]([0-5]\d)\s*[-–—~]\s*([0-2]?\d)[.:]([0-5]\d)/g;
+function parseScheduleText(text){
+ const lines=String(text).normalize('NFKC').replace(/\r/g,'').split('\n').map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean),result=[];let pending=[],lastDay='';
+ const dayPattern=/\b(Minggu|Ahad|Senin|Selasa|Rabu|Kamis|Jum['’]?at|Sabtu)\b/i;
+ const dayIndex=s=>{const m=dayPattern.exec(s);if(!m)return '';const key=m[1].toLowerCase().replace(/['’]/g,'');return key==='ahad'?0:DAY.map(d=>d.toLowerCase()).indexOf(key);};
+ const metadata=s=>/\bSKS\b|\bSmt\.?\s*\d|\bsemester\s*\d|^[A-Z]{2,6}\d{4,}/i.test(s);
+ const header=s=>/^(?:menu|jadwal(?: kuliah)?|mata kuliah|nama mata kuliah|dosen|hari|jam|ruang|kembali|cetak|kelas\s+\S+(?:\s+hari.*)?|tahun akademik.*)$/i.test(s)||(/\bhari\b/i.test(s)&&dayPattern.test(s));
+ const roomLike=s=>/^(?:ruang|lab\.?|gedung|[A-Z]\d[.\d]|\d+\s*[A-Z]?[.\d])/i.test(s);
+ const clean=s=>s.replace(/^(?:\d+[.)]\s*|[-•]+\s*|(?:mata kuliah|dosen|ruang)\s*:\s*)/i,'').replace(/^(Bahasa (?:Inggris|Indonesia))\s+[|l1]$/i,'$1 I').trim();
+ const info=arr=>{const meaningful=arr.filter(s=>!header(s)&&!dayPattern.test(s));const meta=meaningful.findIndex(metadata);let name='',lecturer='';let roomTail='';if(meta>=0){const before=meaningful.slice(0,meta).map(clean);let take=1;if(/^(?:I{1,3}|IV|V|VI)$/.test(before.at(-1)||'')&&before.length>1)take=2;name=before.slice(-take).join(' ');roomTail=before.slice(0,-take).join(' ');lecturer=meaningful.slice(meta+1).filter(s=>!metadata(s)).map(clean).join(' ');}else{const a=meaningful.filter(s=>!metadata(s));name=clean(a[0]||'');lecturer=a.slice(1).map(clean).join(' ');}return {name:name.slice(0,100),lecturer:lecturer.slice(0,100),roomTail};};
+ for(const line of lines){
+  const day=dayIndex(line);if(day!=='')lastDay=day;
+  const previous=result.at(-1);if(previous&&pending.length===0&&!metadata(line)&&!dayPattern.test(line)&&((/[&,:/-]$/.test(previous.room)&&line.length<65)||(/\bKomputasi$/i.test(previous.room)&&/^Bergerak\b/i.test(line)))){previous.room=(previous.room+' '+line).slice(0,100);continue;}const matches=[...line.matchAll(scanTimePattern())];if(!matches.length){if(!/^(?:menu|jadwal(?: kuliah)?|tahun akademik.*|cetak|kembali)$/i.test(line))pending.push(line);continue;}
+  const first=matches[0],prefix=line.slice(0,first.index).replace(dayPattern,'').replace(/\b(?:hari|kelas\s+\S+)\b/gi,'').replace(/[|:;\s]+$/,'').trim();
+  const suffix=line.slice(first.index+first[0].length).replace(/^[\s|:;,]+/,'').trim();
+  const cells=suffix.split(/\s*\|\s*/).filter(Boolean);let room=suffix,entry=info([...pending,...(prefix?[prefix]:[])]);
+  if(!entry.name&&!roomLike(cells[0]||'')&&cells.length>=2){entry={name:clean(cells[0]).slice(0,100),lecturer:clean(cells[1]||'').slice(0,100)};room=cells.slice(2).join(' · ');}
+  if(entry.roomTail&&result.length)result.at(-1).room=(result.at(-1).room+' '+entry.roomTail).trim().slice(0,100);let item;if(entry.name){lastDay=day!==''?day:(pending.map(dayIndex).filter(d=>d!=='').at(-1)??'');item={name:entry.name,lecturer:entry.lecturer,room:'',slots:[]};result.push(item);}else item=result.at(-1);
+  if(!item){item={name:'',lecturer:'',room:'',slots:[]};result.push(item);}
+  item.room=(room||item.room).slice(0,100);
+  for(const m of matches)item.slots.push({day:lastDay,start:pad(Number(m[1]))+':'+m[2],end:pad(Number(m[3]))+':'+m[4]});
+  pending=[];if(result.length>=60)break;
+ }
+ if(pending.some(metadata)&&result.length<60){const tail=info(pending);if(tail.name)result.push({...tail,room:'',slots:[{day:lastDay,start:'',end:''}]});}
+ return result;
+}
+function scanScheduleError(message){const box=$('scheduleScanError');box.textContent=message;box.focus({preventScroll:true});box.scrollIntoView({block:'center'});return false;}
+function scheduleScanSummary(){
+ const picked=scheduleScanRows.filter(r=>r.selected).length;$('scheduleScanSummary').textContent=scheduleScanRows.length?picked+' / '+scheduleScanRows.length+' kelas dipilih. Periksa nama, hari, jam, dan ruangan sebelum menyimpan.':'Belum ada hasil scan. Pilih foto atau tempel teks jadwal.';
+ $('scheduleScanSave').disabled=scheduleScanBusy||!picked;
+ document.querySelectorAll('#scheduleScanResults [data-scan-course]').forEach((row,i)=>{const r=scheduleScanRows[i],duplicate=state.courses.some(c=>scanNameKey(c.name)===scanNameKey(r.name));row.querySelector('.scan-course-duplicate').textContent=duplicate?'Nama ini sudah tersimpan. Ubah nama atau kosongkan centang agar tidak ganda.':'';});
+}
+function addScheduleScanRows(items){
+ for(const c of items){const key=scanNameKey(c.name),old=key&&scheduleScanRows.find(r=>scanNameKey(r.name)===key);if(old){for(const s of c.slots)if(!old.slots.some(o=>o.day===s.day&&o.start===s.start&&o.end===s.end))old.slots.push({...s});if(!old.lecturer)old.lecturer=c.lecturer;if(!old.room)old.room=c.room;continue;}
+ if(scheduleScanRows.length>=60)break;scheduleScanRows.push({...c,slots:c.slots.map(s=>({...s})),scheduled:true,selected:!state.courses.some(x=>scanNameKey(x.name)===key)});}
+ renderScheduleScanRows();
+}
+function scanField(label,control){const wrap=node('label','field');wrap.append(node('span','',label),control);return wrap;}
+function renderScheduleScanRows(){
+ const box=$('scheduleScanResults');box.replaceChildren();scheduleScanRows.forEach((r,i)=>{
+  const card=node('section','scan-course');card.dataset.scanCourse=String(i);
+  const head=node('div','between'),pick=node('label','scan-course-pick'),check=node('input');check.type='checkbox';check.checked=r.selected;check.setAttribute('aria-label','Pilih kelas '+(i+1));check.onchange=()=>{r.selected=check.checked;scheduleScanSummary();};pick.append(check,node('strong','', 'Kelas '+(i+1)));
+  head.append(pick,button('icon-btn','',()=>{scheduleScanRows.splice(i,1);renderScheduleScanRows();},'trash'));head.lastChild.setAttribute('aria-label','Hapus hasil kelas '+(i+1));card.append(head,node('p','scan-course-duplicate'));
+  const grid=node('div','form-stack');for(const [key,label,placeholder]of [['name','Nama mata kuliah','Contoh: Machine Learning'],['lecturer','Dosen (opsional)','Contoh: Pak Wahab'],['room','Ruang / lokasi (opsional)','Contoh: D2.Lab. Komputer']]){const input=node('input');input.value=r[key]||'';input.maxLength=100;input.placeholder=placeholder;input.dataset.scanField=key;input.oninput=()=>{r[key]=input.value;scheduleScanSummary();};grid.append(scanField(label,input));}
+  const schedule=node('label','check-label'),tick=node('input');tick.type='checkbox';tick.checked=r.scheduled;tick.onchange=()=>{r.scheduled=tick.checked;if(r.scheduled&&!r.slots.length)r.slots.push({day:'',start:'',end:''});renderScheduleScanRows();};schedule.append(tick,document.createTextNode('Ada jadwal mingguan'));grid.append(schedule);
+  if(r.scheduled){r.slots.forEach((s,j)=>{const row=node('div','scan-slot'),day=node('select');day.add(new Option('Pilih hari',''));[1,2,3,4,5,6,0].forEach(d=>day.add(new Option(DAY[d],String(d))));day.value=String(s.day);day.dataset.scanField='day';day.onchange=()=>s.day=day.value===''?'':Number(day.value);row.append(scanField('Hari',day));for(const [key,label]of [['start','Mulai'],['end','Selesai']]){const input=node('input');input.type='time';input.value=s[key];input.dataset.scanField=key;input.oninput=()=>s[key]=input.value;row.append(scanField(label,input));}const del=button('text-btn','Hapus pertemuan',()=>{r.slots.splice(j,1);if(!r.slots.length)r.scheduled=false;renderScheduleScanRows();});row.append(del);grid.append(row);});grid.append(button('text-btn','+ Tambah pertemuan',()=>{if(r.slots.length>=14)return scanScheduleError('Maksimal 14 pertemuan untuk satu mata kuliah.');r.slots.push({day:'',start:'',end:''});renderScheduleScanRows();}));}
+  card.append(grid);box.append(card);
+ });scheduleScanSummary();
+}
+function resetScheduleScan(){scheduleScanRows=[];$('scheduleScanTextWrap').open=false;$('scheduleScanText').value='';$('scheduleScanResults').replaceChildren();$('scheduleScanError').textContent='';$('scheduleScanStatus').textContent='';$('scheduleScanPreview').hidden=true;$('scheduleScanPreview').removeAttribute('src');if(scheduleScanURL)URL.revokeObjectURL(scheduleScanURL);scheduleScanURL='';scheduleScanSummary();}
+function setScheduleScanBusy(busy){scheduleScanBusy=busy;for(const id of ['scheduleScanGallery','scheduleScanCamera','scheduleScanParse','scheduleScanAdd'])$(id).disabled=busy;$('scheduleScanStop').hidden=!busy;$('scheduleScanProgress').hidden=!busy;scheduleScanSummary();}
+function cancelScheduleOcr(){scheduleScanRun++;const worker=scheduleScanWorker;scheduleScanWorker=null;if(worker)Promise.resolve(worker.terminate()).catch(()=>{});setScheduleScanBusy(false);$('scheduleScanStatus').textContent='Pembacaan dibatalkan. Kelas belum disimpan.';}
+function openScheduleScan(){if($('scheduleScanDialog').open)return;resetScheduleScan();show('scheduleScanDialog');}
+function closeScheduleScan(){const close=()=>{cancelScheduleOcr();resetScheduleScan();$('scheduleScanDialog').close();};if(scheduleScanBusy||scheduleScanRows.length||$('scheduleScanText').value.trim())confirmAction('Tutup scan jadwal?','Hasil yang belum disimpan akan dibuang. Jadwal yang sudah tersimpan tetap ada.',close,'Ya, tutup');else close();}
+function scheduleScanCandidates(){
+ const chosen=scheduleScanRows.filter(r=>r.selected);if(!chosen.length)throw Error('Pilih minimal satu kelas.');if(state.courses.length+chosen.length>500)throw Error('Maksimal 500 mata kuliah.');
+ const names=new Set(state.courses.map(c=>scanNameKey(c.name)));
+ return chosen.map((r,i)=>{const name=String(r.name||'').trim().replace(/\s+/g,' ');if(!name)throw Error('Nama mata kuliah wajib diisi pada setiap kelas terpilih.');const key=scanNameKey(name);if(names.has(key))throw Error('Nama '+name+' sudah ada. Ubah nama atau kosongkan centangnya.');names.add(key);
+ const slots=r.scheduled?r.slots.map(s=>({...s})):[];if(r.scheduled&&!slots.length)throw Error('Isi pertemuan untuk '+name+' atau matikan Ada jadwal mingguan.');
+ if(slots.some(s=>!Number.isInteger(s.day)||s.day<0||s.day>6||!validTime(s.start)||!validTime(s.end)||s.start>=s.end))throw Error('Periksa hari dan jam '+name+'. Jam selesai harus sesudah jam mulai.');
+ if(slots.some((s,i)=>slots.some((o,j)=>j<i&&s.day===o.day&&s.start<o.end&&o.start<s.end)))throw Error('Pertemuan dalam '+name+' saling bertumpuk. Periksa jamnya.');
+ return {id:uid(),name,lecturer:String(r.lecturer||'').trim().slice(0,100),room:String(r.room||'').trim().slice(0,100),color:COLORS[(state.courses.length+i)%COLORS.length],slots};});
+}
+function saveScheduleScan(){
+ if(scheduleScanBusy||!$('scheduleScanDialog').open)return;let courses;try{courses=scheduleScanCandidates();}catch(e){return scanScheduleError(e.message);}
+ const all=[...state.courses,...courses],conflicts=[];for(const c of courses)for(const other of all)if(c.id!==other.id&&c.slots.some(s=>other.slots.some(o=>s.day===o.day&&s.start<o.end&&o.start<s.end))){const label=[c.name,other.name].sort().join(' ↔ ');if(!conflicts.includes(label))conflicts.push(label);}
+ const save=()=>{if(!commit(()=>{state.courses.push(...courses);}))return scanScheduleError($('toastText').textContent||'Hasil belum tersimpan. Coba kembali.');$('scheduleScanDialog').close();resetScheduleScan();goto('schedule');toast(courses.length+' mata kuliah dari scan tersimpan.');};
+ if(conflicts.length)confirmAction('Ada jadwal yang bentrok.',conflicts.slice(0,5).join('; ')+(conflicts.length>5?' dan jadwal lain.':'.')+' Tetap simpan jika jadwalnya benar.',save,'Tetap simpan');else save();
+}
+function loadScheduleOcr(){
+ if(window.Tesseract?.createWorker)return Promise.resolve();if(scheduleOcrLoader)return scheduleOcrLoader;
+ scheduleOcrLoader=new Promise((resolve,reject)=>{const script=document.createElement('script'),timer=setTimeout(()=>{script.remove();scheduleOcrLoader=null;reject(Error('Mesin scan belum selesai dimuat. Periksa internet lalu coba lagi.'));},30000);script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';script.onload=()=>{clearTimeout(timer);if(window.Tesseract?.createWorker)resolve();else{scheduleOcrLoader=null;reject(Error('Mesin scan tidak tersedia. Coba lagi.'));}};script.onerror=()=>{clearTimeout(timer);script.remove();scheduleOcrLoader=null;reject(Error('Mesin scan gagal dimuat. Periksa internet atau gunakan teks jadwal.'));};document.head.append(script);});return scheduleOcrLoader;
+}
+const scheduleOcrTimeout=(promise,ms)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Pembacaan terlalu lama. Coba foto yang lebih dekat atau gunakan teks jadwal.')),ms);promise.then(v=>{clearTimeout(timer);resolve(v);},e=>{clearTimeout(timer);reject(e);});});
+async function scheduleScanCanvas(file){
+ if(!file.type.startsWith('image/'))throw Error('Pilih file gambar JPG, PNG, atau WebP.');if(file.size>20*1024*1024)throw Error('Pilih gambar di bawah 20 MB.');
+ const image=new Image(),url=URL.createObjectURL(file);try{image.src=url;await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw Error('Gambar tidak dapat dibaca.');const scale=Math.min(3,1800/image.naturalWidth,Math.sqrt(6000000/(image.naturalWidth*image.naturalHeight))),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);const pixels=ctx.getImageData(0,0,canvas.width,canvas.height);for(let i=0;i<pixels.data.length;i+=4){const gray=pixels.data[i]*.299+pixels.data[i+1]*.587+pixels.data[i+2]*.114,v=Math.max(0,Math.min(255,(gray-128)*1.12+128));pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=v;}ctx.putImageData(pixels,0,0);return canvas;}finally{URL.revokeObjectURL(url);}
+}
+async function readSchedulePhoto(file){
+ if(!file||scheduleScanBusy)return;const run=++scheduleScanRun;let worker=null;setScheduleScanBusy(true);$('scheduleScanError').textContent='';$('scheduleScanStatus').textContent='Menyiapkan gambar…';$('scheduleScanProgress').value=0;
+ try{const canvas=await scheduleScanCanvas(file);if(run!==scheduleScanRun)return;if(scheduleScanURL)URL.revokeObjectURL(scheduleScanURL);scheduleScanURL=URL.createObjectURL(file);$('scheduleScanPreview').src=scheduleScanURL;$('scheduleScanPreview').hidden=false;await loadScheduleOcr();if(run!==scheduleScanRun)return;$('scheduleScanStatus').textContent='Memuat pembaca bahasa Indonesia dan Inggris…';
+ let workerReject;const workerFailed=new Promise((_,reject)=>workerReject=reject);const created=Promise.race([Tesseract.createWorker('ind+eng',1,{errorHandler:e=>workerReject(Error(e?.message||String(e)||'Pembaca teks gagal. Coba lagi.')),workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',logger:m=>{if(run!==scheduleScanRun)return;if(m.status==='recognizing text'){$('scheduleScanStatus').textContent='Membaca jadwal… '+Math.round((m.progress||0)*100)+'%';$('scheduleScanProgress').value=m.progress||0;}}}).then(w=>{if(run!==scheduleScanRun||!scheduleScanBusy){w.terminate();throw Error('Dibatalkan');}return w;}),workerFailed]);worker=await scheduleOcrTimeout(created,90000);if(run!==scheduleScanRun)return;scheduleScanWorker=worker;await worker.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});let output=await scheduleOcrTimeout(Promise.race([worker.recognize(canvas),workerFailed]),90000);if(run!==scheduleScanRun)return;let parsed=parseScheduleText(output.data.text);
+ if(!parsed.length){$('scheduleScanStatus').textContent='Mencoba membaca susunan teks lain…';await worker.setParameters({tessedit_pageseg_mode:'3'});const next=await scheduleOcrTimeout(Promise.race([worker.recognize(canvas),workerFailed]),90000);if(run!==scheduleScanRun)return;const alt=parseScheduleText(next.data.text);if(alt.length||next.data.confidence>output.data.confidence){output=next;parsed=alt;}}
+ $('scheduleScanText').value=output.data.text||'';if(!parsed.length){$('scheduleScanTextWrap').open=true;scanScheduleError('Teks belum membentuk jadwal. Koreksi teks di bawah atau tambah kelas secara manual.');}else addScheduleScanRows(parsed);$('scheduleScanStatus').textContent=parsed.length+' kelas terbaca. Cocokkan dengan foto; hasil scan bisa keliru.';
+ }catch(e){if(run===scheduleScanRun){$('scheduleScanTextWrap').open=true;scanScheduleError(e.message||'Gambar belum dapat dibaca. Gunakan foto yang lebih jelas.');}}finally{if(worker)await Promise.resolve(worker.terminate()).catch(()=>{});if(run===scheduleScanRun){scheduleScanWorker=null;setScheduleScanBusy(false);}}
+}
+$('scanScheduleButton').onclick=openScheduleScan;
+$('scanCourseFormButton').onclick=()=>{const open=()=>{$('courseDialog').close();openScheduleScan();};if(JSON.stringify(courseFormData())!==courseBaseline)confirmAction('Buka scan jadwal?','Isian kelas yang belum disimpan akan ditutup.',open);else open();};
+$('scheduleScanClose').onclick=$('scheduleScanCancel').onclick=closeScheduleScan;$('scheduleScanDialog').addEventListener('cancel',e=>{e.preventDefault();closeScheduleScan();});
+$('scheduleScanGallery').onclick=()=>$('scheduleScanGalleryFile').click();$('scheduleScanCamera').onclick=()=>$('scheduleScanCameraFile').click();
+for(const id of ['scheduleScanGalleryFile','scheduleScanCameraFile'])$(id).onchange=e=>{const file=e.target.files?.[0];e.target.value='';if(file)readSchedulePhoto(file);};
+$('scheduleScanStop').onclick=cancelScheduleOcr;
+$('scheduleScanAdd').onclick=()=>addScheduleScanRows([{name:'',lecturer:'',room:'',slots:[{day:'',start:'',end:''}]}]);
+$('scheduleScanParse').onclick=()=>{const rows=parseScheduleText($('scheduleScanText').value);if(!rows.length)return scanScheduleError('Belum ada jadwal yang dikenali. Gunakan contoh format atau Tambah kelas manual.');const apply=()=>{scheduleScanRows=[];addScheduleScanRows(rows);$('scheduleScanError').textContent='';};if(scheduleScanRows.length)confirmAction('Baca ulang teks jadwal?','Koreksi pada daftar hasil scan akan diganti dengan teks ini.',apply,'Baca ulang');else apply();};
+$('scheduleScanSave').onclick=saveScheduleScan;
+window.KuliahScan={parse:parseScheduleText,getDraft:()=>clone(scheduleScanRows)};
+
       hydrateIcons();
       render();
       finishTimer();
